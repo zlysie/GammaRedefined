@@ -61,13 +61,13 @@
 				$_SESSION['errors'] = $result;
 			} else {
 				$mediadir = $_SERVER['DOCUMENT_ROOT']."/../assets"; // to make the website non-platform specific
-				AssetUploader::UploadPlace($name."'s Place", "", file_get_contents($mediadir."/place/StartPlace.rbxl"), true, false, true, 12, $result, true);
+				AssetUploader::UploadPlace($query_username."'s Place", "", file_get_contents($mediadir."/place/StartPlace.rbxl"), true, false, true, 12, $result, true);
 				die(header("Location: /User.aspx"));
 			}
 		}
 	}
 ?>
-<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<!DOCTYPE html>
 <html xmlns="http://www.w3.org/1999/xhtml">
 	<head>
 		<title>GAMMA: A FREE Virtual World-Building Game with Avatar Chat, 3D Environments, and Physics</title>
@@ -133,8 +133,8 @@
 									<div class="Validators">
 										<div>
 											<?php 
-											foreach($_SESSION['errors']['username'] as $err) {
-												echo $err;
+											if(isset($_SESSION['errors']) && isset($_SESSION['errors']['username'])) {
+												echo $_SESSION['errors']['username'];
 											}
 											?>
 										</div>
@@ -154,8 +154,8 @@
 									<div class="Validators">
 										<div>
 											<?php 
-											foreach($_SESSION['errors']['password'] as $err) {
-												echo $err;
+											if(isset($_SESSION['errors']) && isset($_SESSION['errors']['password'])) {
+												echo $_SESSION['errors']['password'];
 											}
 											?>
 										</div>

@@ -8,7 +8,7 @@
 
 	$_SESSION["errors"] = [];
 
-	//$user = UserUtils::RetrieveUser();
+	$user = UserUtils::RetrieveUser();
 
 	$ie6 = strpos($_SERVER["HTTP_USER_AGENT"], 'MSIE 6.0') ? true : false;
 	$ie7 = strpos($_SERVER["HTTP_USER_AGENT"], 'MSIE 7.0') ? true : false;
@@ -23,9 +23,8 @@
 	$stmt_getlatestposts->execute();
 
 	$latest_posts_res = $stmt_getlatestposts->get_result();*/
-
 ?>
-<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<!DOCTYPE html>
 <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" id="gamma-lambda-cam">
 	<head>
 		<title>GAMMA: A FREE Virtual World-Building Game with Avatar Chat, 3D Environments, and Physics</title>

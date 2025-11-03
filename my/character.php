@@ -5,7 +5,7 @@
 	require_once $_SERVER["DOCUMENT_ROOT"]."/core/connection.php";
 	UserUtils::LockOutUserIfNotLoggedIn();
 	
-	$user = UserUtils::GetLoggedInUser();
+	$user = UserUtils::RetrieveUser();
 	
 	$stmt_getbodycolors = $con->prepare('SELECT * FROM `bodycolors` WHERE `userid` = ?');
 	$stmt_getbodycolors->bind_param('i', $user->id);
@@ -70,7 +70,7 @@
 		125 => "#eab891"
 	];
 ?>
-<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<!DOCTYPE html>
 <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" id="gamma-lambda-cam">
 	<head>
 		<title>GAMMA - Character</title>

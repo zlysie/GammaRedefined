@@ -14,13 +14,10 @@
 		$result = $stmt_assetinfo->get_result();*/
 		$msgcount = 0;//$result->num_rows;
 
-		$nav_tux_count = $nav_get_user->GetNetAmount("tux");
+		$nav_tux_count = $nav_get_user->GetNetTux();
 	}
 	$msgcount = 0;
 	$nav_tux_count = 0;
-	
-
-	//UserUtils::RegisterAction();
 ?>
 
 <div id="Header">
@@ -28,7 +25,7 @@
 		<div id="Options">
 			<div id="Authentication">
 				<span>
-					<span id="ctl00_lnLoginName">Logged in as <?= "hi" ?> | </span>
+					<span id="ctl00_lnLoginName">Logged in as <?= $nav_get_user->name ?> | </span>
 					<a id="ctl00_lsLoginStatus" href="javascript:__doPostBack('ctl00$lsLoginStatus$ctl00','')">Logout</a>
 				</span>
 			</div>
@@ -88,10 +85,6 @@
 		<span><a id="ctl00_hlCatalog" class="MenuItem" href="/Catalog.aspx">Catalog</a></span>
 		<span class="Separator">&nbsp;|&nbsp;</span>
 		<span><a id="ctl00_hlBrowse" class="MenuItem" href="/Browse.aspx">People</a></span>
-		<span class="Separator">&nbsp;|&nbsp;</span>
-		<span><a id="ctl00_hlForum" class="MenuItem" href="/Forum/Default.aspx">Forum</a></span>
-		<span class="Separator">&nbsp;|&nbsp;</span>
-		<span><a id="ctl00_hlNews" class="MenuItem" href="http://www.lambda.cam/user/gamma" target="_blank">News</a>&nbsp;<a id="ctl00_hlNewsFeed" href="http://www.lambda.cam/user/gamma?feed=rss"><img src="/images/feed-icons/feed-icon-14x14.png" alt="RSS" border="0"></a></span>
 		<span class="Separator">&nbsp;|&nbsp;</span>
 		<span><a id="ctl00_hlHelp" class="MenuItem" href="https://wiki.lambda.cam/wiki/" target="_blank">Help</a></span>
 	</div>

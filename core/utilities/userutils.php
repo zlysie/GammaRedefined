@@ -211,19 +211,20 @@
 
 			$pages = [
 				"Home"                            => "/my/home.php",
-				"Looking at {username}'s profile" => "/users/profile.php",
+				"Changing their appearance"       => "/my/character.php",
+				"Looking at {username}'s profile" => "/user.php",
+				"Looking at {username}'s friends" => "/friends.php",
 				"Stuff"                           => "/my/stuff.php",
 				"Create Panel"                    => "/core/create.php",
 				"Changing their profile info"     => "/my/profile.php",
-				"People"                          => "/people.php",
+				"People"                          => "/browse.php",
 				"Browsing games"                  => "/games.php",
 				"Catalog"						  => "/catalog.php",
 				"Frontpage"                  	  => "/index.php",
 				"Looking at {item}"           	  => "/item.php",
-				"Looking at {place}"			  => "/place.php",
-				"Editing an item"				  => "/edit.php",
+				"Editing an item"				  => "/My/edit.php",
 				"Editing their character"		  => "/my/character.php",
-				"Looking at {item}"				  => "/Item.aspx.php"
+				""		  => "/test.php",
 			];
 
 			$dont_catalog_ever = [

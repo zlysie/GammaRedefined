@@ -1,9 +1,8 @@
 <?php
-	require_once $_SERVER["DOCUMENT_ROOT"]."/core/gameutils.php";
+	//require_once $_SERVER["DOCUMENT_ROOT"]."/core/gameutils.php";
 	require_once $_SERVER["DOCUMENT_ROOT"]."/core/utilities/userutils.php";
 	require_once $_SERVER["DOCUMENT_ROOT"]."/core/connection.php";
-	require_once $_SERVER["DOCUMENT_ROOT"]."/core/assetutils.php";
-
+	
 	$domain = $_SERVER['SERVER_NAME'];
 	$placeID = $_GET['placeID'] ?? "nil";
 	$load = "game:Load(\"http://$domain/asset/?id=$placeID\")";
@@ -14,10 +13,10 @@
 	if($placeID == "nil") {
 		$load = "";
 	} else {
-		$asset = AssetUtils::GetAsset(intval($placeID));
+		$asset = Asset::FromID(intval($placeID));
 	}
 
-	$user = UserUtils::GetLoggedInUser();
+	$user = UserUtils::RetrieveUser();
 
 	$mode = $user != null ? "true" : "false";
 	if($placeID == "nil") {
@@ -33,7 +32,7 @@
 		}
 
 		if($_SERVER['HTTP_USER_AGENT'] == "Gamma") {
-			GameUtils::CountVisit($placeID, $user->id);
+			//GameUtils::CountVisit($placeID, $user->id);
 		}	
 	} else {
 		$userID = 0;
@@ -83,7 +82,7 @@ function doVisit()
 	else
 		player = game:GetService("Players"):CreateLocalPlayer(0)
 	end
-	player.CharacterAppearance = "<?= UserUtils::GetUserAppearance($userID) ?>"
+	player.CharacterAppearance = "<?= /*UserUtils::GetUserAppearance($userID) */"" ?>"
 	player:LoadCharacter()
 
 	if player.Character:FindFirstChild("Clothing") and not player.Character:FindFirstChild("Shirt Graphic") then

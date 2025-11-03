@@ -1,12 +1,11 @@
 <?php
 	session_start();
-	require_once $_SERVER["DOCUMENT_ROOT"]."/core/assetutils.php";
 	require_once $_SERVER["DOCUMENT_ROOT"]."/core/utilities/userutils.php";
 	require_once $_SERVER["DOCUMENT_ROOT"]."/core/connection.php";
 	UserUtils::LockOutUserIfNotLoggedIn();
 
 	// get logged in user
-	$user = UserUtils::GetLoggedInUser();
+	$user = UserUtils::RetrieveUser();
 	global $user;
 
     if($user != null && $user->IsBanned()) {
@@ -18,31 +17,31 @@
 	}
 
 	$item_id = intval($_GET['ID']);
-	$item = AssetUtils::GetAsset($item_id);
+	$item = Asset::FromID($item_id);
 	if($item == null) {
 		die(header("Location: /User.aspx"));
 	}
 
 	switch($item->type) {
-		case Asset::TSHIRT:
+		case AssetType::TSHIRT:
 			$category = "T-Shirt";
 			break;
-		case Asset::HAT:
+		case AssetType::HAT:
 			$category = "Hat";
 			break;
-		case Asset::PLACE:
+		case AssetType::PLACE:
 			$category = "Place";
 			break;
-		case Asset::MODEL:
+		case AssetType::MODEL:
 			$category = "Model";
 			break;
-		case Asset::SHIRT:
+		case AssetType::SHIRT:
 			$category = "Shirt";
 			break;
-		case Asset::PANTS:
+		case AssetType::PANTS:
 			$category = "Pants";
 			break;
-		case Asset::DECAL:
+		case AssetType::DECAL:
 			$category = "Decal";
 			break;
 	}
@@ -64,13 +63,9 @@
 	
 
 	if(isset($_POST['__EVENTTARGET']) && $_POST['__EVENTTARGET'] == 'ctl00$cphRoblox$rbxItem$ToggleOnSale') {
-		if($item instanceof BuyableAsset) {
-			$onsale = $item->onsale ? 0 : 1;
-		} else {
-			$onsale = 0;
-		}
+		$onsale = $item->onsale ? 0 : 1;
 		
-		if($item->type == Asset::PLACE || $item->type == Asset::MODEL) {
+		if($item->type == AssetType::PLACE || $item->type == AssetType::MODEL) {
 			$onsale = 0;
 		}
 
@@ -95,21 +90,18 @@
 
 		$item_enablecomments = isset($_POST['ctl00$cphRoblox$rbxItem$AllowComments']) ? 1 : 0;
 			
-		if(strlen($item_name) != 0 && strlen($item_desc) != 0) {
+		if(strlen($item_name) != 0) {
 			if(strcmp(strtolower(trim($item_name)), strtolower(trim($item->name))) != 0 ||
 			strcmp(strtolower(trim($item_desc)), strtolower(trim($item->description))) != 0
 			|| $item_enablecomments != $item->comments_enabled) {
-				$stmt_updateasset = $con->prepare('UPDATE `assets` SET `asset_lastupdate` = now() WHERE `asset_id` = ?');
+				$stmt_updateasset = $con->prepare('UPDATE `assets` SET `asset_lastedited` = now() WHERE `asset_id` = ?');
 				$stmt_updateasset->bind_param('i', $item_id);
 				$stmt_updateasset->execute();
 			}
 
-			if($item->type != Asset::PLACE) {
-				$price_cost = 0;
-				if($item instanceof BuyableAsset) {
-					$price_cost = isset($_POST['pricetickets']) ? abs(intval($_POST['pricetickets'])) : $item->tux;
-				}
-				
+			if($item->type != AssetType::PLACE) {
+				$price_cost = isset($_POST['pricetickets']) ? abs(intval($_POST['pricetickets'])) : $item->cost;
+
 				$stmt_updateasset = $con->prepare('UPDATE `assets` SET `asset_name` = ?,`asset_description` = ?, `asset_enablecomments` = ?, `asset_tixcost` = ? WHERE `asset_id` = ?');
 				$stmt_updateasset->bind_param('ssiii', $item_name, $item_desc, $item_enablecomments, $price_cost, $item_id);
 				$stmt_updateasset->execute();
@@ -134,16 +126,14 @@
 		} else {
 			$errors = "";
 			if(strlen($item_name) == 0) {
-				$errors .= "Name field cannot be empty!<br>";
+				$errors = "Name field cannot be empty!<br>";
 			}
 
-			if(strlen($item_desc) == 0) {
-				$errors .= "Description field cannot be empty!<br>";
-			}
+			//die(header("Location: /Item.aspx?ID=$item_id"));
 		}
 	}
 ?>
-<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<!DOCTYPE html>
 <html xmlns="http://www.w3.org/1999/xhtml">
 	<func>
 		<title>GAMMA - Edit Item</title>
@@ -226,7 +216,10 @@
 									</div>
 								</fieldset>
 							</div>
-							<?php if($item instanceof Place): ?>
+							<?php 
+							if($item->type == AssetType::PLACE): 
+								$place = Place::FromID($item->id);
+							?>
 							<div id="PlaceAccess">
 								<fieldset title="Access">
 									<legend>Access</legend>
@@ -235,11 +228,11 @@
 									</div>
 									<div class="PlaceAccessRow">
 										<img id="ctl00_cphRoblox_iPublicAccess" src="/images/public.png" alt="Public" style="border-width:0px;">
-										<input name="ctl00$cphRoblox$rbxItem$PlaceAccess" type="radio" name="PlaceAccess" value="rbPublicAccess" <?php if(!$item->friends_only): ?>checked="checked"<?php endif ?>>
+										<input name="ctl00$cphRoblox$rbxItem$PlaceAccess" type="radio" name="PlaceAccess" value="rbPublicAccess" <?php if(!$place->friends_only): ?>checked="checked"<?php endif ?>>
 										<label>Public: Anybody can visit my place</label><br>
 										
 										<img id="ctl00_cphRoblox_iPrivateAccess" src="/images/locked.png" alt="Friends-only" style="border-width:0px;">
-										<input name="ctl00$cphRoblox$rbxItem$PlaceAccess" type="radio" name="PlaceAccess" value="rbPrivateAccess" <?php if($item->friends_only): ?>checked="checked"<?php endif ?>>
+										<input name="ctl00$cphRoblox$rbxItem$PlaceAccess" type="radio" name="PlaceAccess" value="rbPrivateAccess" <?php if($place->friends_only): ?>checked="checked"<?php endif ?>>
 										<label>Friends: Only my friends can visit my place</label><br>
 									</div>
 								</fieldset>
@@ -250,13 +243,13 @@
 									<legend>Copy Protection</legend>
 									<div class="Suggestion">Checking this will prevent your place from being copied but will also make it available to others only in online mode.</div>
 									<div class="CopyProtectionRow">
-										<input type="checkbox" name="ctl00$cphRoblox$rbxItem$IsCopyProtected" <?php if($item->copylocked): ?>checked="checked"<?php endif ?>>
+										<input type="checkbox" name="ctl00$cphRoblox$rbxItem$IsCopyProtected" <?php if($place->copylocked): ?>checked="checked"<?php endif ?>>
 										<label>Copy-Lock my place</label>
 									</div>
 								</fieldset>
 							</div>
 							<?php endif ?>
-							<?php if($item->type == Asset::MODEL): ?>
+							<?php if($item->type == AssetType::MODEL): ?>
 								<?php
 									$model = Place::FromID($item->id);
 								?>
@@ -299,7 +292,7 @@
 												<tr>
 													<td><b>Price:</b></td>
 													<td id="Price" style="width: 100px;">
-														Tux<input type="text" class="Textbox" name="pricetickets" id="ticketsinput" value="<?=  $item->tux ?>" onchange="updateTicketsData()">
+														Tux<input type="text" class="Textbox" name="pricetickets" id="ticketsinput" value="<?=  $item->cost ?>" onchange="updateTicketsData()">
 													</td>
 												</tr>
 												<tr>

@@ -1,5 +1,9 @@
 <?php
 	session_start();
+
+		//20 assets at once
+	require_once $_SERVER["DOCUMENT_ROOT"]."/core/asset.php";
+	require_once $_SERVER["DOCUMENT_ROOT"]."/core/utilities/userutils.php";
 	
 	/**
 	 * Returns human friendly time ago
@@ -28,29 +32,29 @@
 	}
 
 	$mode = $_GET['m'] ?? 'TopFavorites'; // similar to lua, this or that
-	$category = intval($_GET['c'] ?? '8');
+	$categoryid = intval($_GET['c'] ?? '8');
+	$category = AssetType::index($categoryid);
 	$time_period = $_GET['t'] ?? 'PastWeek';
 	$page = intval($_GET['p'] ?? '1');
-	$query = urldecode($_GET['q']) ?? '';
+	$query = $_GET['q'] ?? '';
+	$query = urldecode($query);
 
 	$modes = array("TopFavorites", "BestSelling", "RecentlyUpdated", "ForSale", "PublicDomain");
 
 	if(!in_array($mode, $modes)) {
-		die(header("Location: Catalog.aspx?m=TopFavorites&c=$category&t=$time_period&d=All&q=$query"));
+		die(header("Location: Catalog.aspx?m=TopFavorites&c=$categoryid&t=$time_period&d=All&q=$query"));
 	}
 
-	//20 assets at once
-	require_once $_SERVER["DOCUMENT_ROOT"]."/core/assetutils.php";
-	require_once $_SERVER["DOCUMENT_ROOT"]."/core/utilities/userutils.php";
+
 
 	UserUtils::LockOutUserIfNotLoggedIn();
 
 	if(isset($_POST['ctl00$cphRoblox$rbxCatalog$SearchButton']) && isset($_POST['ctl00$cphRoblox$rbxCatalog$SearchTextBox']) && !empty(trim($_POST['ctl00$cphRoblox$rbxCatalog$SearchTextBox']))) {
 		$query = urlencode($_POST['ctl00$cphRoblox$rbxCatalog$SearchTextBox']);
-		die(header("Location: Catalog.aspx?m=$mode&c=$category&t=$time_period&d=All&q=$query"));
+		die(header("Location: Catalog.aspx?m=$mode&c=$categoryid&t=$time_period&d=All&q=$query"));
 	}
-	$all_assets = AssetUtils::GetAllAssetsByName($category, $query, $time_period, $mode);
-	$assets = AssetUtils::GetAssetsPagedByName($category, $query, $page, 20, $time_period, $mode);
+	$all_assets = Asset::GetAssetsOfType( $query, $category, $time_period, $mode);
+	$assets = Asset::GetAssetsOfTypePaged($query, $category,  $page, 20, $time_period, $mode);
 
 	$page_count = intval(count($all_assets)/20);
 	if(count($all_assets) - ($page_count*20) != 0) {
@@ -58,34 +62,34 @@
 	}
 
 	if($page > $page_count && $page_count != 0) {
-		die(header("Location: Catalog.aspx?m=$mode&c=$category&t=$time_period&d=All&q=$query"));
+		die(header("Location: Catalog.aspx?m=$mode&c=$categoryid&t=$time_period&d=All&q=$query"));
 	}
 
 	switch($category) {
-		case 2:
+		case AssetType::TSHIRT:
 			$category_label = "T-Shirt";
 			break;
-		case 8:
+		case AssetType::HAT:
 			$category_label = "Hat";
 			break;
-		case 9:
+		case AssetType::PLACE:
 			$category_label = "Place";
 			break;
-		case 10:
+		case AssetType::MODEL:
 			$category_label = "Model";
 			break;
-		case 11:
+		case AssetType::SHIRT:
 			$category_label = "Shirt";
 			break;
-		case 12:
+		case AssetType::PANTS:
 			$category_label = "Pant";
 			break;
-		case 13:
+		case AssetType::DECAL:
 			$category_label = "Decal";
 			break;
 	}
 ?>
-<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<!DOCTYPE html>
 <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" id="gamma-lambda-cam"><!-- MachineID: App1 -->
 	<head>
 		<title>Gamma - Catalog</title>
@@ -98,7 +102,7 @@
 		<script src="/js/WebResource.js" type="text/javascript"></script>
 	</head>
 	<body>
-		<form name="aspnetForm" method="post" action="Catalog.aspx?m=<?= $mode ?>&amp;c=<?= $category ?>" id="aspnetForm">
+		<form name="aspnetForm" method="post" action="Catalog.aspx?m=<?= $mode ?>&amp;c=<?= $categoryid ?>" id="aspnetForm">
 			<div id="Container">
 				<div id="AdvertisingLeaderboard"><!-- 728x90 --></div>
 				<?php include_once $_SERVER["DOCUMENT_ROOT"]."/core/ui/header.php"; ?>
@@ -115,7 +119,7 @@
 								<ul>
 									<li>
 										<?php if($mode == "TopFavorites"): ?><img class="GamesBullet" src="images/games_bullet.png" border="0"><?php endif ?>
-										<a href="Catalog.aspx?m=TopFavorites&amp;c=<?= $category ?>&amp;t=AllTime&amp;d=All">
+										<a href="Catalog.aspx?m=TopFavorites&amp;c=<?= $categoryid ?>&amp;t=AllTime&amp;d=All">
 											<?php if($mode == "TopFavorites"): ?><b><?php endif ?>
 												Top Favorites
 											<?php if($mode == "TopFavorites"): ?></b><?php endif ?>
@@ -123,7 +127,7 @@
 									</li>
 									<li>
 										<?php if($mode == "BestSelling"): ?><img class="GamesBullet" src="images/games_bullet.png" border="0"><?php endif ?>
-										<a href="Catalog.aspx?m=BestSelling&amp;c=<?= $category ?>&amp;t=AllTime&amp;d=All">
+										<a href="Catalog.aspx?m=BestSelling&amp;c=<?= $categoryid ?>&amp;t=AllTime&amp;d=All">
 											<?php if($mode == "BestSelling"): ?><b><?php endif ?>
 												Best Selling
 											<?php if($mode == "BestSelling"): ?></b><?php endif ?>
@@ -131,7 +135,7 @@
 									</li>
 									<li>
 										<?php if($mode == "RecentlyUpdated"): ?><img class="GamesBullet" src="images/games_bullet.png" border="0"><?php endif ?>
-										<a href="Catalog.aspx?m=RecentlyUpdated&amp;c=<?= $category ?>">
+										<a href="Catalog.aspx?m=RecentlyUpdated&amp;c=<?= $categoryid ?>">
 											<?php if($mode == "RecentlyUpdated"): ?><b><?php endif ?>
 												Recently Updated
 											<?php if($mode == "RecentlyUpdated"): ?></b><?php endif ?>
@@ -139,7 +143,7 @@
 									</li>
 									<li>
 										<?php if($mode == "ForSale"): ?><img class="GamesBullet" src="images/games_bullet.png" border="0"><?php endif ?>
-										<a href="Catalog.aspx?m=ForSale&amp;c=<?= $category ?>&amp;d=All">
+										<a href="Catalog.aspx?m=ForSale&amp;c=<?= $categoryid ?>&amp;d=All">
 											<?php if($mode == "ForSale"): ?><b><?php endif ?>
 												For Sale
 											<?php if($mode == "ForSale"): ?></b><?php endif ?>
@@ -147,7 +151,7 @@
 									</li>
 									<li>
 										<?php if($mode == "PublicDomain"): ?><img class="GamesBullet" src="images/games_bullet.png" border="0"><?php endif ?>
-										<a href="Catalog.aspx?m=PublicDomain&amp;c=<?= $category ?>">
+										<a href="Catalog.aspx?m=PublicDomain&amp;c=<?= $categoryid ?>">
 											<?php if($mode == "PublicDomain"): ?><b><?php endif ?>
 												Public Domain
 											<?php if($mode == "PublicDomain"): ?></b><?php endif ?>
@@ -193,7 +197,7 @@
 								<ul>
 									<li>
 										<?php if($time_period == "PastHour"): ?><img class="GamesBullet" src="images/games_bullet.png" border="0"><?php endif ?>
-										<a href="Catalog.aspx?m=<?= $mode ?>&amp;c=<?= $category ?>&amp;t=PastHour&amp;d=All">
+										<a href="Catalog.aspx?m=<?= $mode ?>&amp;c=<?= $categoryid ?>&amp;t=PastHour&amp;d=All">
 											<?php if($time_period == "PastHour"): ?><b><?php endif ?>
 												Past Hour
 											<?php if($time_period == "PastHour"): ?></b><?php endif ?>
@@ -201,7 +205,7 @@
 									</li>
 									<li>
 										<?php if($time_period == "PastDay"): ?><img class="GamesBullet" src="images/games_bullet.png" border="0"><?php endif ?>
-										<a href="Catalog.aspx?m=<?= $mode ?>&amp;c=<?= $category ?>&amp;t=PastDay&amp;d=All">
+										<a href="Catalog.aspx?m=<?= $mode ?>&amp;c=<?= $categoryid ?>&amp;t=PastDay&amp;d=All">
 											<?php if($time_period == "PastDay"): ?><b><?php endif ?>
 												Past Day
 											<?php if($time_period == "PastDay"): ?></b><?php endif ?>
@@ -209,7 +213,7 @@
 									</li>
 									<li>
 										<?php if($time_period == "PastWeek"): ?><img class="GamesBullet" src="images/games_bullet.png" border="0"><?php endif ?>
-										<a href="Catalog.aspx?m=<?= $mode ?>&amp;c=<?= $category ?>&amp;t=PastWeek&amp;d=All">
+										<a href="Catalog.aspx?m=<?= $mode ?>&amp;c=<?= $categoryid ?>&amp;t=PastWeek&amp;d=All">
 											<?php if($time_period == "PastWeek"): ?><b><?php endif ?>
 												Past Week
 											<?php if($time_period == "PastWeek"): ?></b><?php endif ?>
@@ -217,14 +221,14 @@
 									</li>
 									<li>
 										<?php if($time_period == "PastMonth"): ?><img class="GamesBullet" src="images/games_bullet.png" border="0"><?php endif ?>	
-										<a href="Catalog.aspx?m=<?= $mode ?>&amp;c=<?= $category ?>&amp;t=PastMonth&amp;d=All">
+										<a href="Catalog.aspx?m=<?= $mode ?>&amp;c=<?= $categoryid ?>&amp;t=PastMonth&amp;d=All">
 											<?php if($time_period == "PastMonth"): ?><b><?php endif ?>
 												Past Month
 											<?php if($time_period == "PastMonth"): ?></b><?php endif ?></a>
 									</li>
 									<li>
 										<?php if($time_period == "AllTime"): ?><img class="GamesBullet" src="images/games_bullet.png" border="0"><?php endif ?>
-										<a href="Catalog.aspx?m=<?= $mode ?>&amp;c=<?= $category ?>&amp;t=AllTime&amp;d=All">
+										<a href="Catalog.aspx?m=<?= $mode ?>&amp;c=<?= $categoryid ?>&amp;t=AllTime&amp;d=All">
 											<?php if($time_period == "AllTime"): ?><b><?php endif ?>
 												All-time
 											<?php if($time_period == "AllTime"): ?></b><?php endif ?></a>
@@ -246,11 +250,11 @@
 							<?php if(count($all_assets) > 20): ?>
 							<div id="ctl00_cphRoblox_rbxCatalog_HeaderPagerPanel" class="HeaderPager">
 								<?php if($page > 1): ?>
-								<a id="ctl00_cphRoblox_rbxCatalog_HeaderPagerHyperLink_Back" href="Catalog.aspx?m=<?= $mode ?>&amp;c=<?= $category ?>&amp;t=<?= $time_period ?>&amp;q=<?= $query ?>&amp;p=<?= $page-1 ?>"><span class="NavigationIndicators">&lt;&lt;</span> Back</a>
+								<a id="ctl00_cphRoblox_rbxCatalog_HeaderPagerHyperLink_Back" href="Catalog.aspx?m=<?= $mode ?>&amp;c=<?= $categoryid ?>&amp;t=<?= $time_period ?>&amp;q=<?= $query ?>&amp;p=<?= $page-1 ?>"><span class="NavigationIndicators">&lt;&lt;</span> Back</a>
 								<?php endif ?>
 								<span id="ctl00_cphRoblox_rbxCatalog_HeaderPagerLabel">Page <?= $page ?> of <?= $page_count ?></span>
 								<?php if($page != $page_count): ?>
-								<a id="ctl00_cphRoblox_rbxCatalog_HeaderPagerHyperLink_Next" href="Catalog.aspx?m=<?= $mode ?>&amp;c=<?= $category ?>&amp;t=<?= $time_period ?>&amp;q=<?= $query ?>&amp;p=<?= $page+1 ?>">Next <span class="NavigationIndicators">&gt;&gt;</span></a>
+								<a id="ctl00_cphRoblox_rbxCatalog_HeaderPagerHyperLink_Next" href="Catalog.aspx?m=<?= $mode ?>&amp;c=<?= $categoryid ?>&amp;t=<?= $time_period ?>&amp;q=<?= $query ?>&amp;p=<?= $page+1 ?>">Next <span class="NavigationIndicators">&gt;&gt;</span></a>
 								<?php endif ?>
 							</div>
 							<?php endif?>
@@ -270,23 +274,19 @@
 													$creator = $asset->creator;
 													$creator_id = $creator->id;
 													$creator_name = $creator->name;
-													$asset_lastupdate = humanTiming($asset->GetLastUpdateTimestamp());
-													$asset_favcount = $asset->favourites;
-													if($asset instanceof BuyableAsset) {
-														$asset_salecount = $asset->sales;
-													} else {
-														$asset_salecount = 0;
-													}
+													$asset_lastupdate = humanTiming($asset->last_updatetime->getTimestamp());
+													$asset_favcount = $asset->favourites_count;
+													$asset_salecount = $asset->sales_count;
 													
 
 													switch($asset->status) {
-														case 0:
-															$asset_thumburl = "/thumbs/?id=$asset_id&type=120";
+														case AssetStatus::ACCEPTED:
+															$asset_thumburl = "/thumbs/?id=$asset_id&sxy=120";
 															break;
-														case 1:
+														case AssetStatus::PENDING:
 															$asset_thumburl = "/images/review-pending.png";
 															break;
-														case -1:
+														case AssetStatus::REJECTED:
 															$asset_thumburl = "/images/unavail-120x120.png";
 															break;
 													}
@@ -304,12 +304,10 @@
 																<div class="AssetsSold"><span class="Label">Number Sold:</span> <span class="Detail">$asset_salecount</span></div>
 																<div class="AssetFavorites"><span class="Label">Favorited:</span> <span class="Detail">$asset_favcount times</span></div>
 													EOT;
-													if($asset instanceof BuyableAsset) {
-														if($asset->onsale && $asset->tux != 0) {
-															$price = $asset->tux;
+													if($asset->onsale && $asset->cost != 0) {
+															$price = $asset->cost;
 															echo "<div class=\"AssetPrice\"><span class=\"PriceInTickets\">Tux: $price</span></div>";
 														}
-													}
 													echo <<<EOT
 															</div>
 														</div>
@@ -344,11 +342,11 @@
 							<?php if(count($all_assets) > 20): ?>
 							<div id="ctl00_cphRoblox_rbxCatalog_FooterPagerPanel" class="HeaderPager">
 								<?php if($page > 1): ?>
-								<a id="ctl00_cphRoblox_rbxCatalog_FooterPagerHyperLink_Back" href="Catalog.aspx?m=<?= $mode ?>&amp;c=<?= $category ?>&amp;t=<?= $time_period ?>&amp;q=<?= $query ?>&amp;p=<?= $page-1 ?>"><span class="NavigationIndicators">&lt;&lt;</span> Back</a>
+								<a id="ctl00_cphRoblox_rbxCatalog_FooterPagerHyperLink_Back" href="Catalog.aspx?m=<?= $mode ?>&amp;c=<?= $categoryid ?>&amp;t=<?= $time_period ?>&amp;q=<?= $query ?>&amp;p=<?= $page-1 ?>"><span class="NavigationIndicators">&lt;&lt;</span> Back</a>
 								<?php endif ?>
 								<span id="ctl00_cphRoblox_rbxCatalog_FooterPagerLabel">Page <?= $page ?> of <?= $page_count ?></span>
 								<?php if($page != $page_count): ?>
-								<a id="ctl00_cphRoblox_rbxCatalog_FooterPagerHyperLink_Next" href="Catalog.aspx?m=<?= $mode ?>&amp;c=<?= $category ?>&amp;t=<?= $time_period ?>&amp;q=<?= $query ?>&amp;p=<?= $page+1 ?>">Next <span class="NavigationIndicators">&gt;&gt;</span></a>
+								<a id="ctl00_cphRoblox_rbxCatalog_FooterPagerHyperLink_Next" href="Catalog.aspx?m=<?= $mode ?>&amp;c=<?= $categoryid ?>&amp;t=<?= $time_period ?>&amp;q=<?= $query ?>&amp;p=<?= $page+1 ?>">Next <span class="NavigationIndicators">&gt;&gt;</span></a>
 								<?php endif ?>
 							</div>
 							<?php endif?>

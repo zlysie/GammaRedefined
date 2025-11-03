@@ -1,9 +1,9 @@
 <?php
-	require_once $_SERVER["DOCUMENT_ROOT"]."/core/assetutils.php";
+	require_once $_SERVER["DOCUMENT_ROOT"]."/core/asset.php";
 	require_once $_SERVER["DOCUMENT_ROOT"]."/core/utilities/userutils.php";
 	require $_SERVER["DOCUMENT_ROOT"]."/core/connection.php";
 
-	$user = UserUtils::GetLoggedInUser();
+	$user = UserUtils::RetrieveUser();
 
 	if($user == null) {
 		die();
@@ -33,7 +33,7 @@
 			$raw_asset['ta_asset'] != $appearance['tshirt'] && 
 			$raw_asset['ta_asset'] != $appearance['shirt'] && 
 			$raw_asset['ta_asset'] != $appearance['pants']) {
-				$asset = AssetUtils::GetAsset(intval($raw_asset['ta_asset']));
+				$asset = Asset::FromID(intval($raw_asset['ta_asset']));
 				if($asset->status == 0) {
 					$count += 1;
 				}

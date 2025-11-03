@@ -241,7 +241,7 @@
 					$stmt->bind_param('si', $md5hashfile, $image_result['id']);
 					$stmt->execute();
 
-					$render = TheFuckingRenderer::RenderMesh($image_result['id']);
+					/*$render = TheFuckingRenderer::RenderMesh($image_result['id']);
 					$data = "data:image/png;base64,$render";
 					list($type, $data) = explode(';', $data);
 					list(, $data)      = explode(',', $data);
@@ -249,7 +249,7 @@
 
 					$render_image = imagecreatefromstring($data);
 					imagesavealpha($render_image, true);
-					imagepng($render_image, $assetsdir);
+					imagepng($render_image, $assetsdir);*/
 
 					return ["error" => false, "id" => $image_result['id']];
 				}
@@ -885,7 +885,7 @@
 					$data = "data:image/png;base64,$render";
 					list($type, $data) = explode(';', $data);
 					list(, $data)      = explode(',', $data);
-					$data = base64_decode($data);
+					$data = trim(base64_decode($data));
 
 					$render_image = imagecreatefromstring($data);
 					imagesavealpha($render_image, true);

@@ -3,7 +3,6 @@
 	
 	require_once $_SERVER["DOCUMENT_ROOT"]."/core/utilities/userutils.php";
 	require_once $_SERVER["DOCUMENT_ROOT"]."/core/connection.php";
-	require_once $_SERVER["DOCUMENT_ROOT"]."/core/friending.php";
 
 	UserUtils::LockOutUserIfNotLoggedIn();
 	
@@ -16,7 +15,7 @@
 		}
 	}
 	
-	$user = UserUtils::GetLoggedInUser();
+	$user = UserUtils::RetrieveUser();
 	
 	if($get_user == null && $user != null) {
 		$get_user = $user;
@@ -31,21 +30,9 @@
 		}
 	}
 
-	$stmt_getallplaces = $con->prepare("SELECT * FROM `assets` WHERE `asset_type` = 9 AND `asset_status` = 0 AND `asset_creator` = ?");
-	$stmt_getallplaces->bind_param('i', $get_user->id);
-	$stmt_getallplaces->execute();
-	$result = $stmt_getallplaces->get_result();
-	$places = array();
+	$places = $get_user->GetAllOwnedAssetsOfType(AssetType::PLACE);
 
-	$visit_count = 0;
-
-	if($result->num_rows != 0) {
-		while($row = $result->fetch_assoc()) {
-			$place = new Place($row);
-			$visit_count += $place->visits;
-			array_push($places, $place);
-		}
-	}
+	$get_user->online = false;
 
 	$status_string = $get_user->online ? "Online" : "Offline";
 	$status_label = $get_user->online ? "Online: ".$get_user->GetStatus(true) : "Offline";
@@ -67,11 +54,14 @@
 	$stmt->execute();
 	$all_friends_week_count = $stmt->get_result()->num_rows;
 
+	$visit_count = 0;
+
 	if($user != null) {
-		$friends_with = FriendUtils::isUserFriendsWith($user->id, $get_user->id) || $user->id == $get_user->id;
+		$friends_with = false;
+		//$friends_with = FriendUtils::isUserFriendsWith($user->id, $get_user->id) || $user->id == $get_user->id;
 	}
 ?>
-<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<!DOCTYPE html>
 <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" id="gamma-lambda-cam">
 	<head>
 		<title><?= $get_user->name ?>'s GAMMA Home Page</title>
@@ -226,10 +216,6 @@
 										<div class="Value"><span id="ctl00_cphRoblox_rbxUserStatisticsPane_lFriendsStatistics"><?= $all_friends_count ?> (<?= $all_friends_week_count ?> last week)</span></div>
 									</div>
 									<div class="Statistic">
-										<div class="Label"><acronym title="The number of posts this user has made to the GAMMA forum.">Forum Posts</acronym>:</div>
-										<div class="Value"><span id="ctl00_cphRoblox_rbxUserStatisticsPane_lForumPostsStatistics">0</span></div>
-									</div>
-									<div class="Statistic">
 										<div class="Label"><acronym title="The number of times this user's profile has been viewed.">Profile Views</acronym>:</div>
 										<div class="Value"><span id="ctl00_cphRoblox_rbxUserStatisticsPane_lProfileViewsStatistics">0 (0 last week)</span></div>
 									</div>
@@ -258,76 +244,72 @@
 										<input type="hidden" name="ctl00$cphRoblox$rbxUserPlacesPane$ShowcasePlacesAccordion_AccordionExtender_ClientState" id="ctl00_cphRoblox_rbxUserPlacesPane_ShowcasePlacesAccordion_AccordionExtender_ClientState" value="0">
 										<?php
 											foreach($places as $place) {
-												if($place instanceof Place) {
+												$place_id = $place->id;
+												$place_name = $place->name;
+												$place_desc = $place->description;
+												$place_sololine = "";
+												$place_onlineline = "";
+												$item_owner = $place->creator->id == $user->id;
 
-													$place_id = $place->id;
-													$place_name = $place->name;
-													$place_desc = $place->description;
-													$place_sololine = "";
-													$place_onlineline = "";
-													$item_owner = $place->creator->id == $user->id;
-													
-
-													if($place->friends_only) {
-														if(!$friends_with) {
-															$place_access_line = '<span style="display:inline"><img src="images/locked.png" alt="Locked" border="0">&nbsp;Friends-only</span>';
-														} else {
-															$place_access_line = '<span style="display:inline"><img src="images/unlocked.png" alt="Unlocked" border="0">&nbsp;Friends-only: You have access</span>';
-														}
+												if($place->friends_only) {
+													if(!$friends_with) {
+														$place_access_line = '<span style="display:inline"><img src="images/locked.png" alt="Locked" border="0">&nbsp;Friends-only</span>';
 													} else {
-														$place_access_line = '<span style="display:inline"><img src="images/public.png" alt="Public" border="0">&nbsp;Public</span>';
+														$place_access_line = '<span style="display:inline"><img src="images/unlocked.png" alt="Unlocked" border="0">&nbsp;Friends-only: You have access</span>';
 													}
+												} else {
+													$place_access_line = '<span style="display:inline"><img src="images/public.png" alt="Public" border="0">&nbsp;Public</span>';
+												}
 
-													if((!$place->friends_only || ($place->friends_only) && $friends_with) || $place->friends_only && $friends_with) {
-														$place_onlineline = "onclick=\"Gamma.PlaceLauncher.JoinGame($place_id); return false;\"";
-													} else {
-														$place_onlineline = "disabled";
-													}
+												if((!$place->friends_only || ($place->friends_only) && $friends_with) || $place->friends_only && $friends_with) {
+													$place_onlineline = "onclick=\"Gamma.PlaceLauncher.JoinGame($place_id); return false;\"";
+												} else {
+													$place_onlineline = "disabled";
+												}
 
-													if(!$place->copylocked && (!$place->friends_only || ($place->friends_only) && $friends_with)) {
-														$place_sololine = "onclick=\"Gamma.PlaceLauncher.VisitPlace($place_id); return false;\"";
-													} 
-													else if($place->copylocked && $place->friends_only && $friends_with) {
-														$place_sololine = "onclick=\"Gamma.PlaceLauncher.VisitPlace($place_id); return false;\"";
-													} 
-													else if($place->copylocked && !($place->friends_only && $friends_with)) {
-														$place_sololine = "disabled";
-													} 
-													else {
-														$place_sololine = "disabled";
-													}
+												if(!$place->copylocked && (!$place->friends_only || ($place->friends_only) && $friends_with)) {
+													$place_sololine = "onclick=\"Gamma.PlaceLauncher.VisitPlace($place_id); return false;\"";
+												} 
+												else if($place->copylocked && $place->friends_only && $friends_with) {
+													$place_sololine = "onclick=\"Gamma.PlaceLauncher.VisitPlace($place_id); return false;\"";
+												} 
+												else if($place->copylocked && !($place->friends_only && $friends_with)) {
+													$place_sololine = "disabled";
+												} 
+												else {
+													$place_sololine = "disabled";
+												}
 
-													echo <<<EOT
-													<div class="place-container">
-														<div class="AccordionHeader">$place_name</div>
-														<div class="Place">
-															<div class="PlayStatus">
-																$place_access_line
+												echo <<<EOT
+												<div class="place-container">
+													<div class="AccordionHeader">$place_name</div>
+													<div class="Place">
+														<div class="PlayStatus">
+															$place_access_line
+														</div>
+														<div class="PlayOptions">
+															<div id="ctl00_cphRoblox_rbxUserPlacesPane_ctl02_rbxPlatform_rbxVisitButtons_VisitMPButton" style="display:inline">
+																<input type="hidden" name="ctl00\$cphRoblox\$rbxUserPlacesPane\$ctl02\$rbxPlatform\$rbxVisitButtons\$rbxPlaceLauncher\$HiddenField1" id="ctl00_cphRoblox_rbxUserPlacesPane_ctl02_rbxPlatform_rbxVisitButtons_rbxPlaceLauncher_HiddenField1">
+																<button id="ctl00_cphRoblox_rbxUserPlacesPane_ctl02_rbxPlatform_rbxVisitButtons_hlMultiplayerVisit" class="Button" $place_onlineline>Visit Online</button>
 															</div>
-															<div class="PlayOptions">
-																<div id="ctl00_cphRoblox_rbxUserPlacesPane_ctl02_rbxPlatform_rbxVisitButtons_VisitMPButton" style="display:inline">
-																	<input type="hidden" name="ctl00\$cphRoblox\$rbxUserPlacesPane\$ctl02\$rbxPlatform\$rbxVisitButtons\$rbxPlaceLauncher\$HiddenField1" id="ctl00_cphRoblox_rbxUserPlacesPane_ctl02_rbxPlatform_rbxVisitButtons_rbxPlaceLauncher_HiddenField1">
-																	<button id="ctl00_cphRoblox_rbxUserPlacesPane_ctl02_rbxPlatform_rbxVisitButtons_hlMultiplayerVisit" class="Button" $place_onlineline>Visit Online</button>
-																</div>
-																<div id="ctl00_cphRoblox_rbxUserPlacesPane_ctl02_rbxPlatform_rbxVisitButtons_VisitButton" style="display:inline">
-																	&nbsp;&nbsp;&nbsp;<button id="ctl00_cphRoblox_rbxUserPlacesPane_ctl02_rbxPlatform_rbxVisitButtons_hlSoloVisit" class="Button" $place_sololine>Visit Solo</button>
-																</div>
+															<div id="ctl00_cphRoblox_rbxUserPlacesPane_ctl02_rbxPlatform_rbxVisitButtons_VisitButton" style="display:inline">
+																&nbsp;&nbsp;&nbsp;<button id="ctl00_cphRoblox_rbxUserPlacesPane_ctl02_rbxPlatform_rbxVisitButtons_hlSoloVisit" class="Button" $place_sololine>Visit Solo</button>
 															</div>
-															<div class="Statistics">
-																<span id="ctl00_cphRoblox_rbxUserPlacesPane_ctl02_rbxPlatform_lStatistics">Visited 0 times (0 last week)</span>
-															</div>
-															<div class="Thumbnail">
-																<a id="ctl00_cphRoblox_rbxUserPlacesPane_ctl02_rbxPlatform_rbxPlaceThumbnail" disabled="disabled" title="$place_name" href="/Item.aspx?ID=$place_id" style="display:inline-block;"><img src="/thumbs/?id=$place_id&type=420" border="0" alt="$place_name" blankurl="http://t1.roblox.com:80/blank-420x230.gif"></a>
-															</div>
-															<div id="ctl00_cphRoblox_rbxUserPlacesPane_ctl02_rbxPlatform_pDescription">
-																<div class="Description">
-																	<span id="ctl00_cphRoblox_rbxUserPlacesPane_ctl02_rbxPlatform_lDescription">$place_desc</span>
-																</div>
+														</div>
+														<div class="Statistics">
+															<span id="ctl00_cphRoblox_rbxUserPlacesPane_ctl02_rbxPlatform_lStatistics">Visited 0 times (0 last week)</span>
+														</div>
+														<div class="Thumbnail">
+															<a id="ctl00_cphRoblox_rbxUserPlacesPane_ctl02_rbxPlatform_rbxPlaceThumbnail" disabled="disabled" title="$place_name" href="/Item.aspx?ID=$place_id" style="display:inline-block;"><img src="/thumbs/?id=$place_id&type=420" border="0" alt="$place_name" blankurl="http://t1.roblox.com:80/blank-420x230.gif"></a>
+														</div>
+														<div id="ctl00_cphRoblox_rbxUserPlacesPane_ctl02_rbxPlatform_pDescription">
+															<div class="Description">
+																<span id="ctl00_cphRoblox_rbxUserPlacesPane_ctl02_rbxPlatform_lDescription">$place_desc</span>
 															</div>
 														</div>
 													</div>
-													EOT;
-												}
+												</div>
+												EOT;
 											}
 										?>
 									</div>

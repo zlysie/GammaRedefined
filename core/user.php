@@ -127,7 +127,7 @@
 			return [];
 		}
 
-		function HasProfileBadgeOf(ANORRLBadges $badge): bool {
+		function HasBadgeOf(ANORRLBadges $badge): bool {
 			include $_SERVER["DOCUMENT_ROOT"]."/core/connection.php";
 			$stmt = $con->prepare("SELECT * FROM `profilebadges` WHERE `badge_id` = ? AND `badge_userid` = ?");
 			$ordinal = $badge->ordinal();
@@ -141,7 +141,7 @@
 		 * Returns the system badges (Homestead and the alike)
 		 * @return void
 		 */
-		function GetProfileBadges(): array {
+		function GetBadges(): array {
 			include $_SERVER["DOCUMENT_ROOT"]."/core/connection.php";
 			$stmt = $con->prepare("SELECT * FROM `profilebadges` WHERE `badge_userid` = ? ORDER BY `badge_recieved` DESC, `badge_admincorecore` DESC");
 			$stmt->bind_param('i',$this->id);
@@ -156,14 +156,6 @@
 			}
 
 			return $badges;
-		}
-
-		/**
-		 * Returns badges created by the users (from games)
-		 * @return void
-		 */
-		function GetUserBadges(): array {
-			return [];
 		}
 
 		function GetLatestStatus(): Status|null {
@@ -222,7 +214,13 @@
 				while($row = $result->fetch_assoc()) {
 					$asset = Asset::FromID($row['ta_asset']);
 					if($asset->status != AssetStatus::REJECTED) {
-						array_push($result_array, $asset);
+						if($asset->type == AssetType::PLACE) {
+							array_push($result_array, Place::FromID($row['ta_asset']));
+						} else {
+
+						}
+					
+						
 					}
 				}
 			}
@@ -450,7 +448,7 @@
 		 * @return void
 		 */
 		function IsAdmin(): bool {
-			return $this->HasProfileBadgeOf(ANORRLBadges::ADMINISTRATOR);
+			return $this->HasBadgeOf(ANORRLBadges::ADMINISTRATOR);
 		}
 
 		/**
@@ -505,12 +503,8 @@
 			return "Offline";
 		}
 
-		function GetNetLights(): int {
-			return $this->GetNetAmount("lights");
-		}
-
-		function GetNetCones(): int {
-			return $this->GetNetAmount("cones");
+		function GetNetTux(): int {
+			return $this->GetNetAmount("tux");
 		}
 
 		function GetNetAmount(?string $currency): int {
@@ -549,6 +543,10 @@
 			$stmt_user_status_check->execute();
 			$activity_result = $stmt_user_status_check->get_result();
 			return $activity_result->num_rows == 0;
+		}
+
+		function GetKillCount(): int {
+			return 0;
 		}
 	}
 

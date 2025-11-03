@@ -35,7 +35,7 @@
 		die(header("Location: Browse.aspx?q=$query&p=$page"));
 	}
 ?>
-<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<!DOCTYPE html>
 <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" id="gamma-lamnda-cam">
 	<head>
 		<title>GAMMA: A FREE Virtual World-Building Game with Avatar Chat, 3D Environments, and Physics</title>
@@ -91,12 +91,15 @@
 												$user_id = $user->id;
 												$user_name = $user->name;
 												$user_blurb = $user->blurb;
+												$user->online = false;
 												$user_status = $user->online ? "Online" : "Offline";
-												$user_lastonline = $user->last_online->format('j/n/Y g:i:s A');
+												//$user_lastonline = $user->last_online->format('j/n/Y g:i:s A');
 
 												if($user->online) {
-													$user_lastonline = $user->GetStatus();
+													//$user_lastonline = $user->GetStatus();
 												}
+
+												$user_lastonline = "No";
 
 												echo <<<EOT
 													<tr class="GridItem">

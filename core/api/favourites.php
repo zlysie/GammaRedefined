@@ -1,10 +1,9 @@
 <?php
 
-require_once $_SERVER["DOCUMENT_ROOT"]."/core/assetutils.php";
 require_once $_SERVER["DOCUMENT_ROOT"]."/core/utilities/userutils.php";
 require_once $_SERVER["DOCUMENT_ROOT"]."/core/connection.php";
 
-$user = UserUtils::GetLoggedInUser();
+$user = UserUtils::RetrieveUser();
 if($user == null) {
 	die();
 }
@@ -45,7 +44,7 @@ if(isset($_GET['getfavlist']) && isset($_GET['type']) && isset($_GET['id'])) {
 	if($item_count > 0) {
 		$asset_array = array("page"=>$page+1, "totalpages"=>$totalpages);
 		while($raw_asset = $item_result->fetch_assoc()) {
-			$asset = AssetUtils::GetAsset($raw_asset['fav_assetid']);
+			$asset = Asset::FromID($raw_asset['fav_assetid']);
 			array_push($asset_array, array("CreatorUserID"=>$asset->creator->id, "ID"=>$asset->id, "Name"=>$asset->name, "CreatorName"=>$asset->creator->name));
 		}
 	} else {
@@ -58,7 +57,7 @@ if(isset($_GET['getfavlist']) && isset($_GET['type']) && isset($_GET['id'])) {
 
 	$asset_id = intval($_POST['id']);
 	$user_id = intval($_POST['userid']);
-	Asset::FromID($asset_id)->Unfavourite();
+	Asset::FromID($asset_id)->Unfavourite($user);
 }
 
 ?>

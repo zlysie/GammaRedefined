@@ -1,11 +1,10 @@
 <?php 
 	session_start();
-	require_once $_SERVER["DOCUMENT_ROOT"]."/core/assetutils.php";
 	require_once $_SERVER["DOCUMENT_ROOT"]."/core/utilities/userutils.php";
 	require_once $_SERVER["DOCUMENT_ROOT"]."/core/utilities/transactionutils.php";
 	require_once $_SERVER["DOCUMENT_ROOT"]."/core/connection.php";
 	header("content-type: application/json"); 
-	$user = UserUtils::GetLoggedInUser();
+	$user = UserUtils::RetrieveUser();
 	if($user == null) {
 		die();
 	}
@@ -51,19 +50,17 @@
 				$asset_array = array("page"=>$page+1, "totalpages"=>$totalpages);		
 				while($row = $result->fetch_assoc()) {
 					$asset = AssetUtils::GetAsset($row['ta_asset']);
-					if($asset instanceof BuyableAsset) {
-						$cost = $asset->tux;
-						if(!$asset->onsale) {
-							$cost = 0;
-						}
-						array_push($asset_array, array("CreatorUserID" => $asset->creator->id, "ID" => $asset->id, "Name" => $asset->name, "CreatorName" => $asset->creator->name, "Cost" => $cost));
+					$cost = $asset->cost;
+					if(!$asset->onsale) {
+						$cost = 0;
 					}
+					array_push($asset_array, array("CreatorUserID" => $asset->creator->id, "ID" => $asset->id, "Name" => $asset->name, "CreatorName" => $asset->creator->name, "Cost" => $cost));
 				}
 			} else {
 				$asset_array = array();
 			}
 		} else {
-			$stmt_assetinfo = $con->prepare('SELECT * FROM `assets` WHERE `asset_creator` = ? AND `asset_type` = ? ORDER BY `asset_creationdate` DESC LIMIT ?, ?');
+			$stmt_assetinfo = $con->prepare('SELECT * FROM `assets` WHERE `asset_creator` = ? AND `asset_type` = ? ORDER BY `asset_created` DESC LIMIT ?, ?');
 			$stmt_assetinfo->bind_param('iiii', $user, $type_to_look_for, $start, $rows);
 			$stmt_assetinfo->execute();
 			$result = $stmt_assetinfo->get_result();
@@ -73,8 +70,8 @@
 			if($num_rows > 0) {
 				$asset_array = array("page"=>$page+1, "totalpages"=>$totalpages);		
 				while($row = $result->fetch_assoc()) {
-					$asset = new BuyableAsset($row);
-					array_push($asset_array, array("CreatorUserID" => $asset->creator->id, "ID" => $asset->id, "Name" => $asset->name, "CreatorName" => $asset->creator->name, "Cost" => $asset->tux));
+					$asset = new Asset($row);
+					array_push($asset_array, array("CreatorUserID" => $asset->creator->id, "ID" => $asset->id, "Name" => $asset->name, "CreatorName" => $asset->creator->name, "Cost" => $asset->cost));
 				}
 			} else {
 				$asset_array = array();

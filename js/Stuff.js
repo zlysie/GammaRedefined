@@ -82,7 +82,7 @@ function LoadAssetMenu(userid, menuName, page) {
 				imagelink.attr("href", "/Item.aspx?id="+asset["ID"]);
 				imagelink.attr("title", asset["Name"]);
 				$(imagelink.find("img")[0]).attr("alt", asset["Name"]);
-				$(imagelink.find("img")[0]).attr("src", "/thumbs/?id="+asset["ID"]+"&type=120");
+				$(imagelink.find("img")[0]).attr("src", "/thumbs/?id="+asset["ID"]+"&sxy=120");
 
 				if(asset['Cost'] != 0) {
 					$template.find(".AssetPrice").html('<span class="PriceInTickets">Tux: '+ asset["Cost"]+'</span>');
@@ -192,7 +192,7 @@ function LoadFavourites(userid, type, page) {
 				imagelink.attr("href", "/Item.aspx?id="+asset["ID"]);
 				imagelink.attr("title", asset["Name"]);
                 $(imagelink.find("img")[0]).attr("alt", asset["Name"]);
-				$(imagelink.find("img")[0]).attr("src", "/thumbs/?id="+asset["ID"]+"&type=120");
+				$(imagelink.find("img")[0]).attr("src", "/thumbs/?id="+asset["ID"]+"&sxy=120");
 				$(datalistbody.find("tr")[trIndex]).append($template);
 				index += 1;
 			}

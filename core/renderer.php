@@ -3,15 +3,7 @@
 	ini_set("default_socket_timeout", 15);
 	ini_set("soap.wsdl_cache_enabled", 0);
 
-	$directory = $_SERVER['DOCUMENT_ROOT']."/Assemblies/Roblox/Grid/Rcc/";
-	$scanned_directory = array_diff(scandir($directory), array('..', '.'));
-
-	foreach($scanned_directory as $file) {
-		if(str_contains($file, "php")) {
-			require $directory.$file;
-		}
-		
-	}
+	require_once $_SERVER['DOCUMENT_ROOT']."/core/rcclib.php";
 
 	class TheFuckingRenderer {
 
@@ -57,14 +49,10 @@
 
 				$job = new Roblox\Grid\Rcc\Job($JobId);
 				$scriptText = <<<EOT
-				game:GetService("ContentProvider"):SetBaseUrl("http://$domain/")
-				game:GetService("ScriptContext").ScriptsDisabled = true
-				game:GetService("Lighting").Outlines = false
-
 				local player = game.Players:CreateLocalPlayer(0)
 
-				player.CharacterAppearance = "http://$domain/Asset/CharacterFetch.ashx?assetId=$id&access=$access"
-				player:LoadCharacter(false)
+				player.CharacterAppearance = "http://$domain/asset/?id=$id&access=$access"
+				player:LoadCharacter()
 
 				return (game:GetService("ThumbnailGenerator"):Click("PNG", 420, 420, true))
 				EOT;
@@ -130,27 +118,25 @@
 				return base64_encode(file_get_contents($_SERVER['DOCUMENT_ROOT']."/images/unavail-250x250.png"));
 			}
 
-			$rcc = new Roblox\Grid\Rcc\RCCServiceSoap(self::$address, self::$port);
-				
-				$domain = self::$domain;
+			$domain = self::$domain;
 
-				$JobId = md5(rand());
+			$JobId = md5(rand());
 
-				$access = $settings['asset']['ACCESSKEY'];
+			$access = $settings['asset']['ACCESSKEY'];
 
-				$time = time();
+			$time = time();
 
-				$job = new Roblox\Grid\Rcc\Job($JobId);
-				$scriptText = <<<EOT
+			$rcc = new RCCServiceSoap(self::$address, self::$port, 'roblox.com', true);
+			
+			return $rcc->execScript(
+				<<<EOT
 				game:Load("http://$domain/asset/?id=$id&access=$access&time=$time")
-				return (game:GetService("ThumbnailGenerator"):Click("PNG", 420, 230, false))
-				EOT;
-
-				$script = new Roblox\Grid\Rcc\ScriptExecution($JobId."-Script", $scriptText);
-				$base64data = $rcc->OpenJob($job, $script);
-				$rcc->RenewLease($JobId, 5);
-
-			return $base64data;
+				local render = game:GetService("ThumbnailGenerator"):Click("PNG", 420, 230, false)
+				return (render)
+				EOT,
+				$JobId,
+				5
+			);
 		}
 
 	}

@@ -78,8 +78,8 @@
 		
 	}
 
-	if(isset($_POST['__EVENTTARGET']) && $_POST['__EVENTTARGET'] == 'ctl00$cphRoblox$FavoriteThisButton') {
-		$item->Favourite();
+	if($user != null && isset($_POST['__EVENTTARGET']) && $_POST['__EVENTTARGET'] == 'ctl00$cphRoblox$FavoriteThisButton') {
+		$item->Favourite($user);
 		die(header("Location: /Item.aspx?ID=$item_id"));
 	}
 
@@ -597,7 +597,7 @@
 					<div style="clear: both;"></div>
 					<?php if($item instanceof BuyableAsset): ?>
 					<div id="ctl00_cphRoblox_ItemPurchasePopupPanel" class="modalPopup" style="width:27em;display: none">
-						<?php if($item->tux == 0 && $item->bux == 0): ?>
+						<?php if($item->cost == 0): ?>
 						<div id="ctl00_cphRoblox_ItemPurchasePopupUpdatePanel">
 							<div id="VerifyPurchase_Free" style="margin: 1.5em;">
 								<h3>Free Item:</h3>
@@ -624,7 +624,7 @@
 							<p style="color:red;font-weight:bold;">
 							</p>
 							<p>
-								<a href="/Catalog.aspx?c=<?= $item->type ?>">Continue Shopping</a>
+								<a href="/Catalog.aspx?c=<?= $item->type->ordinal() ?>">Continue Shopping</a>
 							</p>
 							<p>
 								<a href="/My/Character.aspx">Customize Character</a>

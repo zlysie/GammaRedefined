@@ -1,8 +1,8 @@
 <?php
 	session_start();
-	require_once $_SERVER["DOCUMENT_ROOT"]."/core/assetutils.php";
+	require_once $_SERVER["DOCUMENT_ROOT"]."/core/asset.php";
 	require_once $_SERVER["DOCUMENT_ROOT"]."/core/utilities/userutils.php";
-	require_once $_SERVER["DOCUMENT_ROOT"]."/core/gameutils.php";
+	//require_once $_SERVER["DOCUMENT_ROOT"]."/core/gameutils.php";
 
 	UserUtils::LockOutUserIfNotLoggedIn();
 	
@@ -115,16 +115,16 @@
 	$modes = array("MostPopular", "RecentlyUpdated");
 
 	if(!in_array($mode, $modes)) {
-		die(header("Location: Games.aspx?m=MostPopular&t=$time_period"));
+		die(header("Location: /Games.aspx?m=MostPopular&t=$time_period"));
 	}
 
 	//15 assets at once
-	$all_assets = AssetUtils::GetAllAssetsByName(9, "", $time_period, $mode);
+	$all_assets = Asset::GetAssetsOfType("", AssetType::PLACE, $time_period, $mode);
 	$page_count = ceil(intval(count($all_assets)/15));
 
-	$assets = AssetUtils::GetAssetsPagedByName(9, "", $page, 15, $time_period, $mode);
+	$assets = Asset::GetAssetsOfTypePaged("", AssetType::PLACE, $page, 15, $time_period, $mode); //
 ?>
-<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<!DOCTYPE html>
 <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" id="<?= str_replace(".", "-", $domain) ?>">
 	<head>
 		<title>GAMMA Games - <?php 
@@ -185,7 +185,6 @@
 												<?php if($mode == "RecentlyUpdated"): ?></b><?php endif ?>
 											</a>
 										</li>
-										<li><a href="User.aspx?ID=1">Featured Games</a></li>
 									</ul>
 								</div>
 								<div id="ctl00_cphRoblox_rbxCatalog_Timespan">
@@ -278,30 +277,31 @@
 														$creator = $asset->creator;
 														$creator_id = $creator->id;
 														$creator_name = $creator->name;
-														$asset_lastupdate = humanTiming($asset->GetLastUpdateTimestamp());
-														$asset_favcount = $asset->favourites;
+														$asset_lastupdate = humanTiming($asset->last_updatetime->getTimestamp());
+														
+														$asset_favcount = $asset->favourites_count;
 	
-														$place_visitcount = $asset->visits;
+														$place_visitcount = $asset->visit_count;
 	
 														switch($asset->status) {
-															case 0:
-																$asset_thumburl = "/thumbs/?id=$asset_id&type=420";
+															case AssetStatus::ACCEPTED:
+																$asset_thumburl = "/thumbs/?id=$asset_id";
 																break;
-															case 1:
+															case AssetStatus::PENDING:
 																$asset_thumburl = "/images/review-pending.png";
 																break;
-															case -1:
+															case AssetStatus::REJECTED:
 																$asset_thumburl = "/images/unavail-120x120.png";
 																break;
 														}
 	
-														$asset_playersonline = $asset->currently_playing;
+														$asset_playersonline = $asset->current_playing_count;
 	
 														echo <<<EOT
 														<td class="Game" valign="top">
 															<div style="padding-bottom:5px">
 																<div class="GameThumbnail">
-																	<a title="$asset_name" href="Item.aspx?ID=$asset_id" style="display:inline-block;cursor:pointer;">
+																	<a title="$asset_name" href="/Item.aspx?ID=$asset_id" style="display:inline-block;cursor:pointer;">
 																		<img src="$asset_thumburl" border="0" alt="$asset_name" width="160" height="100">
 																	</a>
 																</div>
@@ -360,9 +360,7 @@
 							</div>
 						</div>
 						<div class="Ads_WideSkyscraper">
-							<a href="" target="_blank">
-								<img src="/images/ads/jerma_sky160x600.png" width="160" height="600" border="1" />
-							</a>
+							<img src="/images/ads/jerma_sky160x600.png" width="160" height="600" />
 						</div>
 						<div style="clear: both;"></div>
 					</div>

@@ -53,62 +53,60 @@ class RCCServiceSoap {
 		$script = str_replace(">", "&gt;",  $script);
 
 		$xml = <<<EOT
-			<?xml version="1.0" encoding="UTF-8"?>
-			<SOAP-ENV:Envelope
-				xmlns:SOAP-ENV="http://schemas.xmlsoap.org/soap/envelope/"
-				xmlns:SOAP-ENC="http://schemas.xmlsoap.org/soap/encoding/"
-				xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
-				xmlns:xsd="http://www.w3.org/2001/XMLSchema" 
-				xmlns:ns2="http://$url/RCCServiceSoap" 
-				xmlns:ns1="http://$url/" 
-				xmlns:ns3="http://$url/RCCServiceSoap12">
-				
-				<SOAP-ENV:Body>
-					<ns1:OpenJob>
-						<ns1:job>
-							<ns1:id>$jobId</ns1:id>
-							<ns1:expirationInSeconds>$jobExpiration</ns1:expirationInSeconds>
-							<ns1:category>1</ns1:category>
-							<ns1:cores>1</ns1:cores>
-						</ns1:job>
+		<?xml version="1.0" encoding="UTF-8"?>
+		<SOAP-ENV:Envelope
+			xmlns:SOAP-ENV="http://schemas.xmlsoap.org/soap/envelope/"
+			xmlns:SOAP-ENC="http://schemas.xmlsoap.org/soap/encoding/"
+			xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
+			xmlns:xsd="http://www.w3.org/2001/XMLSchema" 
+			xmlns:ns1="http://$url/" 
+			xmlns:ns2="http://$url/RCCServiceSoap12">
+			<SOAP-ENV:Body>
+				<ns1:OpenJob>
+					<ns1:job>
+						<ns1:id>$jobId</ns1:id>
+						<ns1:expirationInSeconds>$jobExpiration</ns1:expirationInSeconds>
+						<ns1:category>1</ns1:category>
+						<ns1:cores>1</ns1:cores>
+					</ns1:job>
+					<ns1:script>
+						<ns1:name>GameScript</ns1:name>
 						<ns1:script>
-							<ns1:name>Script</ns1:name>
-							<ns1:script>
-								$script
-							</ns1:script>
+							$script
 						</ns1:script>
-					</ns1:OpenJob>
-				</SOAP-ENV:Body>
-			</SOAP-ENV:Envelope>
+					</ns1:script>
+				</ns1:OpenJob>
+			</SOAP-ENV:Body>
+		</SOAP-ENV:Envelope>
 		EOT;
-		//header("content-type: text/plain");die($xml);
+		
 		return $this->requestUrl("http://".$this->ip.":".$this->port, $xml, "OpenJob");
 	}
 
 	function execute($script, $jobID) {
 		$url = $this->url;
 		$xml = <<<EOT
-			<?xml version="1.0" encoding="UTF - 8"?>
-			<SOAP-ENV:Envelope 
-				xmlns:SOAP-ENV="http://schemas.xmlsoap.org/soap/envelope/"
-				xmlns:SOAP-ENC="http://schemas.xmlsoap.org/soap/encoding/"
-				xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-				xmlns:xsd="http://www.w3.org/2001/XMLSchema"
-				xmlns:ns2="http://$url/RCCServiceSoap"
-				xmlns:ns1="http://$url/" 
-				xmlns:ns3="http://$url/RCCServiceSoap12">
-				<SOAP-ENV:Body>
-					<ns1:Execute>
-						<ns1:jobID>$jobID</ns1:jobID>
+		<?xml version="1.0" encoding="UTF - 8"?>
+		<SOAP-ENV:Envelope 
+			xmlns:SOAP-ENV="http://schemas.xmlsoap.org/soap/envelope/"
+			xmlns:SOAP-ENC="http://schemas.xmlsoap.org/soap/encoding/"
+			xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+			xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+			xmlns:ns2="http://$url/RCCServiceSoap"
+			xmlns:ns1="http://$url/" 
+			xmlns:ns3="http://$url/RCCServiceSoap12">
+			<SOAP-ENV:Body>
+				<ns1:Execute>
+					<ns1:jobID>$jobID</ns1:jobID>
+					<ns1:script>
+						<ns1:name>Script</ns1:name>
 						<ns1:script>
-							<ns1:name>Script</ns1:name>
-							<ns1:script>
-								$script
-							</ns1:script>
+							$script
 						</ns1:script>
-					</ns1:Execute>
-				</SOAP-ENV:Body>
-			</SOAP-ENV:Envelope>
+					</ns1:script>
+				</ns1:Execute>
+			</SOAP-ENV:Body>
+		</SOAP-ENV:Envelope>
 		EOT;
 		
 		return $this->requestUrl("http://".$this->ip.":".$this->port, $xml, "Execute");
@@ -117,21 +115,21 @@ class RCCServiceSoap {
 	function closeJob($jobID) {
 		$url = $this->url;
 		$xml = <<<EOT
-			<?xml version="1.0" encoding="UTF - 8"?>
-			<SOAP-ENV:Envelope 
-				xmlns:SOAP-ENV="http://schemas.xmlsoap.org/soap/envelope/"
-				xmlns:SOAP-ENC="http://schemas.xmlsoap.org/soap/encoding/"
-				xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-				xmlns:xsd="http://www.w3.org/2001/XMLSchema"
-				xmlns:ns2="http://$url/RCCServiceSoap"
-				xmlns:ns1="http://$url/" 
-				xmlns:ns3="http://$url/RCCServiceSoap12">
-				<SOAP-ENV:Body>
-					<ns1:CloseJob>
-						<ns1:jobID>$jobID</ns1:jobID>
-					</ns1:CloseJob>
-				</SOAP-ENV:Body>
-			</SOAP-ENV:Envelope>
+		<?xml version="1.0" encoding="UTF - 8"?>
+		<SOAP-ENV:Envelope 
+			xmlns:SOAP-ENV="http://schemas.xmlsoap.org/soap/envelope/"
+			xmlns:SOAP-ENC="http://schemas.xmlsoap.org/soap/encoding/"
+			xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+			xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+			xmlns:ns2="http://$url/RCCServiceSoap"
+			xmlns:ns1="http://$url/" 
+			xmlns:ns3="http://$url/RCCServiceSoap12">
+			<SOAP-ENV:Body>
+				<ns1:CloseJob>
+					<ns1:jobID>$jobID</ns1:jobID>
+				</ns1:CloseJob>
+			</SOAP-ENV:Body>
+		</SOAP-ENV:Envelope>
 		EOT;
 		
 		return $this->requestUrl("http://".$this->ip.":".$this->port, $xml, "CloseJob");

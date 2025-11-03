@@ -164,7 +164,7 @@
 		}
 
 
-		public static function GetAssetsOfTypePaged(string $query, AssetType $type, int $pagenum, int $count, bool $allowunchecked = true) {
+		public static function GetAssetsOfTypePaged(string $query, AssetType $type, int $pagenum, int $count, string $time, string $sort, bool $allowunchecked = true) {
 			include $_SERVER["DOCUMENT_ROOT"]."/core/connection.php";
 			$stmt_getuser = $con->prepare("SELECT * FROM `assets` WHERE `asset_name` LIKE ? AND `asset_type` = ? ORDER BY `asset_lastedited` LIMIT ?, ?");
 			
@@ -205,9 +205,36 @@
 			return [];
 		}
 
-		public static function GetAssetsOfType(string $query, AssetType $type, bool $allowunchecked = true) {
+		public static function GetAssetsOfType(string $query, AssetType $type, string $time, string $sort, bool $allowunchecked = true) {
 			include $_SERVER["DOCUMENT_ROOT"]."/core/connection.php";
-			$stmt_getuser = $con->prepare("SELECT * FROM `assets` WHERE `asset_name` LIKE ? AND `asset_type` = ?");
+			$query_time = "";
+			if($time == "AllTime") {
+				
+			} else if($time == "PastMonth") {
+				$query_time = "AND `asset_lastedited` >= NOW() - INTERVAL 1 MONTH";
+			} else if($time == "PastWeek") {
+				$query_time = "AND `asset_lastedited` >= NOW() - INTERVAL 1 WEEK";
+			} else if($time == "PastDay") {
+				$query_time = "AND `asset_lastedited` >= NOW() - INTERVAL 1 DAY";
+			} else if($time == "PastHour") {
+				$query_time = "AND `asset_lastedited` >= NOW() - INTERVAL 1 HOUR";
+			}
+			if($sort == "TopFavorites") {
+				$query_sort = "AND `asset_status` = 0 ORDER BY `asset_favourites_count` DESC";
+			} else if($sort == "BestSelling") {
+				$query_sort = "AND `asset_onsale` = 1 AND `asset_status` = 0 ORDER BY `asset_salecount` DESC";
+			} else if($sort == "ForSale") {
+				$query_sort = "AND `asset_onsale` = 1 AND `asset_status` = 0 ORDER BY `asset_lastedited` DESC";
+			} else if($sort == "RecentlyUpdated" || $sort == "PublicDomain") { 
+				$query_sort = "ORDER BY `asset_lastedited` DESC";
+			} else if($sort == "MostPopular") {
+				//$query_sort = "ORDER BY `place_playercount` DESC, `place_visitcount` DESC";
+				$query_sort = "";
+			} else {
+				$query_sort = "";
+			}
+
+			$stmt_getuser = $con->prepare("SELECT * FROM `assets` WHERE `asset_name` LIKE ? AND `asset_type` = ? $query_time $query_sort");
 			
 			$q = "%$query%";
 			$ordinal = $type->ordinal();
@@ -547,7 +574,7 @@
 		function __construct($rowdata) {
 			parent::__construct(intval($rowdata['place_id']));
 
-			$this->friends_only = $this->public;
+			$this->friends_only = !$this->public;
 			$this->copylocked = boolval($rowdata['place_copylocked']);
 			$this->genre = Genre::index(intval($rowdata['place_genre']));
 			$this->allowed_geartypes = null;

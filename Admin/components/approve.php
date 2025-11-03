@@ -12,7 +12,7 @@
 
 	$assets = AssetUtils::GetAllUncheckedAssets();
 ?>
-<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<!DOCTYPE html>
 <html>
 	<head>
 		<style>
@@ -125,9 +125,7 @@
 			?>
 		</div>
 		<script>
-			$(function(){
-				checkAndRemove();
-			});
+			$(function(){ checkAndRemove(); });
 		</script>
 	</body>
 </html>

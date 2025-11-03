@@ -13,57 +13,24 @@
 	RewriteRule ^Asset/?$ /core/utilities/assetdeliverer.php 			  [END]
 	
 	RewriteRule ^IDE/Landing.aspx$ /core/ide/landing.php				  		  [END]
-	RewriteRule ^ide/welcome$ /my/places.php				  		  [END]
-	RewriteRule ^IDE/welcome$ /my/places.php				  		  [END]
-
 	RewriteRule ^IDE/Upload.aspx$ /core/ide/publish.php				  		  [END]
 	RewriteRule ^IDE/PublishNewPlace.aspx$ /core/ide/publishnewplace.php				  		  [END]
 	RewriteRule ^IDE/ClientToolbox.aspx	/core/ide/toolbox.php			  [END]
 
 	RewriteRule ^Data/Upload.ashx	/core/ide/upload.php			  [END]
-
-	RewriteRule ^IDE/Toolbox/GetTotalNumberOfResults /core/ide/toolbox/gettotalnumberofresults.php			  [END]
-	RewriteRule ^IDE/Toolbox/Search /core/ide/toolbox/search.php			  [END]
-
 	RewriteRule ^Game/Upload.aspx /core/ide/goingupload.php			  [END]
 
 	RewriteRule ^game/gameserver.ashx$ /core/gamescripts/gameserver.php	  [END]
-	RewriteRule ^game/host.ashx$ /core/gamescripts/host.php	  [END]
 	RewriteRule ^game/join.ashx$ /core/gamescripts/join.php				  [END]
-	RewriteRule ^game/studio.ashx$ /core/gamescripts/studio.php			  [END]
 	RewriteRule ^game/visit.ashx$ /core/gamescripts/visit.php 			  [END]
 	RewriteRule ^game/edit.ashx$ /core/gamescripts/edit.php			  [END]
 
-	RewriteRule ^login$ login.php										  [END]
-	RewriteRule ^Login$ login.php										  [END]
-	RewriteRule ^register$ register.php									  [END]
-	RewriteRule ^people$ people.php										  [END]
-
-	RewriteRule ^my/home$ /my/home.php									  [END]
-	RewriteRule ^my/stuff$ /my/stuff.php									  [END]
-	RewriteRule ^my/profile$ /my/profile.php							  [END]
-	RewriteRule ^my/places$ /my/places.php							  [END]
-	RewriteRule ^my/character$ /my/character.php							  [END]
-
-	RewriteRule ^api/(.*?)$ /api/$1.php [END]
+	RewriteRule ^api/(.*?)$ /core/api/$1.php [END]
 
 	RewriteRule ^game/maingameserver.ashx$ /core/gamescripts/coregameserver.php [END]
 	
-	RewriteRule ^Game/Tools/InsertAsset.ashx$ /core/insertasset.php [END]
-
-	RewriteRule ^Friend/AreFriends$ /Friend/AreFriends.php [END]
-
 	RewriteRule ^create/(.*?)$ /core/create.php?type=$1 [END]
-
-	RewriteRule ^UploadMedia/PostImage.aspx /core/uploadmedia/postimage.php [END]
-	RewriteRule ^UploadMedia/UploadVideo.aspx /core/uploadmedia/uploadvideo.php [END]
-
-	RewriteRule ^Sets/SetHandler.ashx /core/sets/setshandler.php [END]
-	RewriteRule ^sets/SetsHandler.ashx /core/sets/setshandler.php [END]
-	RewriteRule ^UploadMedia/UploadVideo.aspx /core/uploadmedia/uploadvideo.php [END]
-
-	RewriteRule ^Game/Tools/ThumbnailAsset.ashx /images/unavailable-75.png [END]
-	RewriteRule ^game/Tools/ThumbnailAsset.ashx /images/unavailable-75.png [END]
+	RewriteRule ^api(/.*)?$ /core/api/$1.php  [END]
 
 	RewriteRule ^Thumbs/RawAsset.ashx /core/thumbs/rawasset.php [END]
 	RewriteRule ^thumbs/RawAsset.ashx /core/thumbs/rawasset.php [END]
@@ -72,6 +39,7 @@
 	RewriteRule ^thumbs/?$ /core/thumbs/index.php [END]
 	
 	RewriteRule ^edit$ /edit.php [END]
+	RewriteRule ^Item.aspx$ /item.php [END]
 
 	RewriteCond %{QUERY_STRING} id=(.+)
 	RewriteRule ^(.*)-item$ /item.php?name=$1&id=%1 [QSD,END]
@@ -84,10 +52,18 @@
 	RewriteRule ^game/([0-9]+)$ /place.php?name=a&id=$1 [END]
 	RewriteRule ^Game/([0-9]+)$ /place.php?name=a&id=$1 [END]
 
-	RewriteRule ^games$ /games.php [END]
-	RewriteRule ^catalog$ /catalog.php [END]
+	RewriteRule ^Games.aspx$ /games.php [END]
+	RewriteRule ^Catalog.aspx$ /catalog.php [END]
+	RewriteRule ^Default.aspx$ /index.php [END]
+	RewriteRule ^Friends.aspx$ /friends.php [END]
+	RewriteRule ^Browse.aspx$ /browse.php [END]
+	RewriteRule ^User.aspx$ /user.php [END]
+
+	RewriteRule ^My/Character.aspx /my/character.php [END]
+	RewriteRule ^My/Item.aspx /my/edit.php [END]
 
 	RewriteRule ^games.php$ /core/error/404.php [END]
+	RewriteRule ^browse.php$ /core/error/404.php [END]
 	RewriteRule ^catalog.php$ /core/error/404.php [END]
 	RewriteRule ^edit.php$ /core/error/404.php [END]
 	RewriteRule ^item.php$ /core/error/404.php [END]
@@ -101,7 +77,7 @@
 	RewriteRule ^js/PlaceLauncher.js /js/PlaceLauncher.js.php [END]
 
 	RewriteRule ^core(/.*)?$ /core/error/404.php [END]
-	RewriteRule ^api(/.*)?$ /core/error/404.php  [END]
+
 </IfModule>
 
 DirectoryIndex index.php index.html Default.aspx Default.aspx.php
